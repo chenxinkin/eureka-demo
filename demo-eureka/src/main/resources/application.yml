@@ -1,0 +1,28 @@
+#集群模式启动Eureka Server
+spring: 
+  application:
+    name: windowHost-EurekaServer
+server:
+  port: 8761 #启动端口
+eureka: #向另一个Eureka Server注册自己为一个Client
+  hostname: windowHost #指定本机器的主机名
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://hadoopMaster:${server.port:8761}/eureka/ #去主机名未hadoopMaster的Eureka服务器，将自己注册为一个客户端
+    
+zuul:
+  prefix: /techouse #为zuul设置一个公共的前缀
+  #ignoredServices: '*'
+  routes:
+    cloud-client: #随便定义，当不存在serviceId时，默认该值为serviceId（就是注册服务的名称，属性spring.application.name）
+      path: /usersystem/** #匹配/techouse/usersystem/** 均路由到cloud-client
+      serviceId: cloud-client #指定路由到的serviceId
+ribbon:
+  eureka:
+    enabled: false #配置zuul路由时用将此属性设置为false
+
+cloud-client:
+  ribbon:
+    listOfServers: windowHost:8800,hadoopMaster:8080 #为cloud-client服务指定一组服务地址，应该是用于负载均衡
